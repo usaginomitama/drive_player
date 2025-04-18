@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Drive音声プレイヤー</title>
+    <style>
+        /* 基本スタイル */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        /* プレイヤーコンテナ */
+        .player-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        /* オーディオ要素 */
+        #audio-player {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        /* カスタムコントロール */
+        .custom-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 10px;
+            background-color: #2d3748;
+            color: white;
+        }
+
+        .control-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .control-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+
+        .volume-slider {
+            width: 80px;
+            margin-left: 5px;
+        }
+
+        .time-display {
+            margin-left: auto;
+            font-size: 14px;
+        }
+
+        /* Google Drive設定セクション */
+        .drive-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .drive-section h2 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #2d3748;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .button {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background-color: #2d3748;
+        }
+
+        /* ファイル一覧セクション */
+        .files-section {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .files-section h2 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #2d3748;
+        }
+
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .file-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .file-item.active {
+            background-color: #e2e8f0;
+        }
+
+        .file-item-title {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 10px;
+        }
+
+        .file-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .file-item-actions button {
+            background: none;
+            border: none;
+            color: #4a5568;
+            cursor: pointer;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .file-item-actions button:hover {
+            background-color: #edf2f7;
+        }
+
+        .empty-list {
+            padding: 20px;
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+        }
+
+        /* プレイリストセクション */
+        .playlist-section {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+
+        .playlist-section h2 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .playlist-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .playlist-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .playlist-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .playlist-item.active {
+            background-color: #e2e8f0;
+        }
+
+        .playlist-item-title {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 10px;
+        }
+
+        .playlist-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .playlist-item-actions button {
+            background: none;
+            border: none;
+            color: #4a5568;
+            cursor: pointer;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .playlist-item-actions button:hover {
+            background-color: #edf2f7;
+        }
+
+        /* ローディングインジケータ */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #4a5568;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* エラーメッセージスタイル */
+        .error-message {
+            background-color: #fff5f5;
+            color: #c53030;
+            border: 1px solid #fc8181;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .error-message h3 {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .error-message p {
+            margin-bottom: 8px;
+        }
+
+        .error-message ul {
+            margin-left: 20px;
+            margin-bottom: 8px;
+        }
+
+        .error-message .error-code {
+            font-family: monospace;
+            background-color: #fed7d7;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .error-message .retry-button {
+            background-color: #c53030;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .error-message .retry-button:hover {
+            background-color: #9b2c2c;
+        }
+
+        /* レスポンシブ調整 */
+        @media (max-width: 600px) {
+            .custom-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .time-display {
+                margin-left: 0;
+                margin-top: 10px;
+                width: 100%;
+            }
+
+            .volume-container {
+                margin-top: 10px;
+                width: 100%;
+            }
+
+            .volume-slider {
+                width: 100%;
+                margin-left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Google Drive音声プレイヤー</h1>
+
+    <!-- エラーメッセージ表示エリア -->
+    <div id="error-container"></div>
+
+    <!-- プレイヤーコンテナ -->
+    <div class="player-container">
+        <!-- オーディオ要素 -->
+        <audio id="audio-player" controls></audio>
+
+        <!-- カスタムコントロール -->
+        <div class="custom-controls">
+            <button id="play-pause-btn" class="control-button">再生</button>
+            <button id="stop-btn" class="control-button">停止</button>
+            
+            <div class="volume-container">
+                <button id="mute-btn" class="control-button">🔊</button>
+                <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.1" value="1">
+            </div>
+            
+            <div class="time-display">
+                <span id="current-time">0:00</span> / <span id="duration">0:00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Drive設定セクション -->
+    <div class="drive-section">
+        <h2>Google Drive設定</h2>
+        
+        <!-- フォルダID入力 -->
+        <div class="input-group">
+            <label for="folder-id">Google DriveフォルダID:</label>
+            <input type="text" id="folder-id" placeholder="例: 1aBcDeFgHiJkLmNoPqRsTuVwXyZ">
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button id="load-files-btn" class="button">ファイル一覧を取得</button>
+            <button id="toggle-loop-btn" class="button">ループ: オフ</button>
+        </div>
+    </div>
+
+    <!-- ファイル一覧セクション -->
+    <div class="files-section">
+        <h2>ファイル一覧</h2>
+        <div id="file-list" class="file-list">
+            <div class="empty-list">フォルダIDを入力してファイル一覧を取得してください。</div>
+        </div>
+    </div>
+
+    <!-- プレイリストセクション -->
+    <div class="playlist-section">
+        <h2>
+            <span>プレイリスト</span>
+            <div class="playlist-controls">
+                <button id="clear-playlist-btn" class="button">すべて削除</button>
+            </div>
+        </h2>
+        
+        <div id="playlist-container">
+            <div class="empty-list">プレイリストは空です。ファイル一覧から追加してください。</div>
+        </div>
+    </div>
+
+    <!-- Google API読み込み -->
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM要素
+            const audioPlayer = document.getElementById('audio-player');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const muteBtn = document.getElementById('mute-btn');
+            const volumeSlider = document.getElementById('volume-slider');
+            const currentTimeDisplay = document.getElementById('current-time');
+            const durationDisplay = document.getElementById('duration');
+            const folderIdInput = document.getElementById('folder-id');
+            const loadFilesBtn = document.getElementById('load-files-btn');
+            const toggleLoopBtn = document.getElementById('toggle-loop-btn');
+            const fileListContainer = document.getElementById('file-list');
+            const clearPlaylistBtn = document.getElementById('clear-playlist-btn');
+            const playlistContainer = document.getElementById('playlist-container');
+            const errorContainer = document.getElementById('error-container');
+
+            // プレイヤーの状態
+            let isLooping = false;
+            let playlist = [];
+            let currentPlaylistIndex = -1;
+            let isPlaying = false;
+            let audioFiles = [];
+            let isApiInitialized = false;
+            let lastFolderId = '';
+
+            function ensureTokenValid(next) {
+              const t = gapi.client.getToken();
+              const willExpireSoon = t && t.expires_at && (t.expires_at - Date.now() < 60_000);
+
+              if (!t || !t.access_token || willExpireSoon) {
+                        // トークンが無い or ほぼ期限切れ => ポップアップ or silent で取得し、
+                        // 取得後に next() の戻り値を resolve する Promise を返す
+                        return new Promise(resolve => {
+                        tokenClient.requestAccessToken({
+                            prompt: '', // '' で silent refresh、'consent' で必ずポップアップ
+                            callback: () => resolve(next())
+                        });
+                        });
+                } else {
+                        // トークン有効なら next() の戻り値をそのまま返す
+                        return next();
+                }
+            }
+
+            // Google API設定
+            const API_KEY = 'AIzaSyDltcb4024smCe3qBWrUl2reb4VnXqp2BA'; // Google Cloud ConsoleでAPIキーを取得して設定してください
+            const CLIENT_ID = '238594037265-oelh71fodo8qb4eajv80brerahj6sflj.apps.googleusercontent.com'; // Google Cloud ConsoleでクライアントIDを取得して設定してください
+            const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+            const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+
+            // エラーメッセージを表示する関数
+            function showError(title, message, details = null, errorCode = null, retryFunction = null) {
+                // 既存のエラーメッセージをクリア
+                errorContainer.innerHTML = '';
+                
+                // エラーメッセージ要素を作成
+                const errorElement = document.createElement('div');
+                errorElement.className = 'error-message';
+                
+                // エラータイトルと説明
+                let errorHTML = `<h3>エラー: ${title}</h3><p>${message}</p>`;
+                
+                // 詳細情報がある場合は追加
+                if (details) {
+                    if (Array.isArray(details)) {
+                        errorHTML += '<ul>';
+                        details.forEach(detail => {
+                            errorHTML += `<li>${detail}</li>`;
+                        });
+                        errorHTML += '</ul>';
+                    } else {
+                        errorHTML += `<p>${details}</p>`;
+                    }
+                }
+                
+                // エラーコードがある場合は追加
+                if (errorCode) {
+                    errorHTML += `<p>エラーコード: <span class="error-code">${errorCode}</span></p>`;
+                }
+                
+                // 再試行ボタンがある場合は追加
+                if (retryFunction) {
+                    errorHTML += '<button class="retry-button">再試行</button>';
+                }
+                
+                errorElement.innerHTML = errorHTML;
+                
+                // 再試行ボタンのイベントリスナーを追加
+                if (retryFunction) {
+                    errorElement.querySelector('.retry-button').addEventListener('click', () => {
+                        errorContainer.innerHTML = '';
+                        retryFunction();
+                    });
+                }
+                
+                // エラーメッセージを表示
+                errorContainer.appendChild(errorElement);
+                
+                // エラーメッセージまでスクロール
+                errorContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // エラーメッセージをクリアする関数
+            function clearError() {
+                errorContainer.innerHTML = '';
+            }
+
+            async function testFetchPlayback(fileId) {
+                const tokenObj = gapi.client.getToken();
+                if (!tokenObj || !tokenObj.access_token) {
+                    console.error('No access token');
+                    return;
+                }
+                const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`;
+                try {
+                    const resp = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${tokenObj.access_token}`
+                    }
+                    });
+                    console.log('Fetch status:', resp.status, resp.headers.get('Content-Type'));
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const blob = await resp.blob();
+                    const objUrl = URL.createObjectURL(blob);
+                    audioPlayer.src = objUrl;
+                    await audioPlayer.play();
+                    console.log('再生 OK via fetch+blob');
+                } catch (e) {
+                    console.error('fetch playback error', e);
+                }
+            }
+            window.testFetchPlayback = testFetchPlayback;
+
+
+            // プレイヤーの初期化
+            function initPlayer() {
+                // オーディオ要素のイベントリスナー設定
+                audioPlayer.addEventListener('timeupdate', updateTimeDisplay);
+                audioPlayer.addEventListener('loadedmetadata', updateDurationDisplay);
+                audioPlayer.addEventListener('ended', handleAudioEnded);
+                audioPlayer.addEventListener('play', () => {
+                    playPauseBtn.textContent = '一時停止';
+                    isPlaying = true;
+                });
+                audioPlayer.addEventListener('pause', () => {
+                    playPauseBtn.textContent = '再生';
+                    isPlaying = false;
+                });
+                
+                // オーディオエラーイベントリスナー
+                audioPlayer.addEventListener('error', (e) => {
+                    const errorMessages = {
+                        1: 'メディアの読み込みが中止されました',
+                        2: 'ネットワークエラーが発生しました',
+                        3: 'デコードエラーが発生しました',
+                        4: 'メディア形式がサポートされていません'
+                    };
+                    
+                    const errorCode = audioPlayer.error ? audioPlayer.error.code : 0;
+                    const errorMessage = errorMessages[errorCode] || '不明なエラーが発生しました';
+                    
+                    showError(
+                        '音声ファイルの再生エラー', 
+                        errorMessage,
+                        '再生中のファイルにアクセスできないか、形式が正しくない可能性があります。',
+                        `MEDIA_ERR_${errorCode}`,
+                        () => {
+                            // 現在のプレイリストアイテムを再試行
+                            if (currentPlaylistIndex >= 0 && currentPlaylistIndex < playlist.length) {
+                                playPlaylistItem(currentPlaylistIndex);
+                            }
+                        }
+                    );
+                });
+
+                // コントロールボタンの設定
+                playPauseBtn.addEventListener('click', togglePlayPause);
+                stopBtn.addEventListener('click', stopAudio);
+                muteBtn.addEventListener('click', toggleMute);
+                volumeSlider.addEventListener('input', changeVolume);
+                loadFilesBtn.addEventListener('click', handleLoadFilesClick);
+                toggleLoopBtn.addEventListener('click', toggleLoop);
+                clearPlaylistBtn.addEventListener('click', clearPlaylist);
+
+                // 初期ボリューム設定
+                audioPlayer.volume = volumeSlider.value;
+
+                // Google APIの初期化
+                initGoogleAPI();
+            }
+
+            // Google APIの初期化
+            function initGoogleAPI() {
+                // APIの読み込みを確認
+                if (!window.gapi) {
+                    showError(
+                        'Google APIの読み込みエラー',
+                        'Google APIが正しく読み込まれませんでした。',
+                        [
+                            'インターネット接続を確認してください。',
+                            'ブラウザのアドブロッカーを無効にしてみてください。',
+                            'ページを再読み込みしてください。'
+                        ],
+                        'GAPI_LOAD_ERROR',
+                        () => window.location.reload()
+                    );
+                    return;
+                }
+                
+                // ローディング表示
+                loadFilesBtn.disabled = true;
+                loadFilesBtn.textContent = 'APIを初期化中...';
+                
+                // タイムアウト設定
+                const apiInitTimeout = setTimeout(() => {
+                    loadFilesBtn.disabled = false;
+                    showError(
+                        'Google APIの初期化タイムアウト',
+                        'Google APIの初期化に時間がかかりすぎています。',
+                        [
+                            'インターネット接続を確認してください。',
+                            'Google APIが利用可能か確認してください。',
+                            'ブラウザのキャッシュをクリアしてみてください。'
+                        ],
+                        'API_INIT_TIMEOUT',
+                        initGoogleAPI
+                    );
+                }, 20000); // 20秒のタイムアウト
+                
+                gapi.load('client', () => {
+                                    clearTimeout(apiInitTimeout);
+
+                gapi.client.init({
+                    apiKey: API_KEY,
+                    discoveryDocs: DISCOVERY_DOCS        // scope と clientId は不要
+                }).then(() => {
+                    console.log('gapi client initialized');
+                    isApiInitialized = true;
+
+                    /* ── GIS トークンクライアントを初期化 ── */
+                    tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,                     // 例: 'https://www.googleapis.com/auth/drive.readonly'
+                    callback: (resp) => {
+                        if (resp.error) {
+                        showError(
+                            'トークン取得エラー',
+                            resp.error,
+                            'Google認証でアクセスを許可してください。',
+                            'TOKEN_ERROR'
+                        );
+                        return;
+                        }
+                        /* 取得したアクセストークンを gapi にセット */
+                        gapi.client.setToken({ access_token: resp.access_token });
+                        updateSigninStatus(true);        // サインイン完了として処理
+                        clearError();
+                    }
+                    });
+
+                    /* 初期状態を「未サインイン」として UI 更新 */
+                    updateSigninStatus(false);
+                    clearError();
+
+                }).catch(error => {
+                    console.error('Error initializing Google API', error);
+                    loadFilesBtn.disabled = false;
+
+                    /* ↓↓↓ ここから下は元の catch 内のエラー解析ロジックを そのまま残す ↓↓↓ */
+                    let errorMessage = 'Google APIの初期化に失敗しました。';
+                    let errorDetails = [];
+                    let errorCode = 'API_INIT_ERROR';
+
+                    if (error.message && error.message.includes('API key')) {
+                    errorMessage = 'APIキーが無効です。';
+                    errorDetails = [
+                        'APIキーが正しく設定されているか確認してください。',
+                        'Google Cloud ConsoleでAPIキーの制限を確認してください。',
+                        'このドメインからのアクセスが許可されているか確認してください。'
+                    ];
+                    errorCode = 'INVALID_API_KEY';
+                    }
+
+                    showError(
+                    errorMessage,
+                    error.details || error.message || '詳細なエラー情報がありません。',
+                    errorDetails,
+                    errorCode,
+                    initGoogleAPI
+                    );
+                    /* ↑↑↑ もともとの catch 内コードは必要に応じて調整してください ↑↑↑ */
+                });
+                });
+            }
+
+            // 認証状態の更新
+            function updateSigninStatus(isSignedIn) {
+                loadFilesBtn.disabled = false;
+                
+                if (isSignedIn) {
+                    loadFilesBtn.textContent = 'ファイル一覧を取得';
+                    loadFilesBtn.onclick = loadGoogleDriveFiles;
+                    clearError(); // 認証成功したらエラーをクリア
+                } else {
+                    loadFilesBtn.textContent = 'Googleにサインイン';
+                    loadFilesBtn.onclick = handleAuthClick;
+                }
+            }
+
+            // 認証クリックハンドラ
+            function handleAuthClick() {
+                if (!isApiInitialized) {
+                    showError(
+                        'APIが初期化されていません',
+                        'Google APIがまだ初期化されていません。',
+                        'ページを再読み込みしてから再試行してください。',
+                        'API_NOT_INITIALIZED',
+                        () => window.location.reload()
+                    );
+                    return;
+                }
+                
+                /* ───── 置換ブロック（GIS 版）───── */
+                try {
+                tokenClient.requestAccessToken({
+                    prompt: 'consent',          // 毎回アカウント選択ポップアップ
+                    callback: (resp) => {
+                    if (resp.error) {
+                        console.error('Auth error', resp);
+
+                        let errorMessage = 'Google認証に失敗しました。';
+                        let errorDetails = [];
+                        let errorCode = 'AUTH_ERROR';
+
+                        // GIS の代表的なエラーコード
+                        switch (resp.error) {
+                        case 'popup_window_error':           // ポップアップを開けない（ブロック）
+                            errorMessage = '認証ポップアップがブロックされました。';
+                            errorDetails = [
+                            'ブラウザのポップアップブロッカーを無効にしてください。',
+                            'このサイトのポップアップを許可してください。'
+                            ];
+                            errorCode = 'POPUP_BLOCKED';
+                            break;
+
+                        case 'access_denied':                // アクセス拒否
+                            errorMessage = 'アクセスが拒否されました。';
+                            errorDetails = [
+                            'Google認証でアクセスを許可してください。',
+                            '別のGoogleアカウントでログインしてみてください。'
+                            ];
+                            errorCode = 'ACCESS_DENIED';
+                            break;
+
+                        case 'user_cancel':                  // ユーザーがポップアップを閉じた
+                            errorMessage = '認証ポップアップが閉じられました。';
+                            errorDetails = [
+                            '認証プロセスを完了するために、ポップアップを閉じないでください。'
+                            ];
+                            errorCode = 'POPUP_CLOSED';
+                            break;
+                        }
+
+                        showError(
+                        errorMessage,
+                        resp.error_description || '詳細なエラー情報がありません。',
+                        errorDetails,
+                        errorCode,
+                        () => tokenClient.requestAccessToken({ prompt: 'consent' })
+                        );
+                        return;
+                    }
+
+                    /* ------- 認証成功時の処理 ------- */
+                    gapi.client.setToken({ access_token: resp.access_token });
+                    clearError();
+                    updateSigninStatus(true);     // サインイン状態を true として UI 更新
+                    }
+                });
+                } catch (err) {
+                console.error('Unexpected auth error', err);
+                showError(
+                    '予期しない認証エラー',
+                    err.message || '不明なエラーが発生しました。',
+                    'ブラウザを更新して再試行してください。',
+                    'UNEXPECTED_AUTH_ERROR',
+                    () => window.location.reload()
+                );
+                }
+                /* ───── 置換ブロック ここまで ───── */
+
+            }
+
+            // ロードボタンクリックハンドラ
+            function handleLoadFilesClick() {
+                clearError(); // エラーをクリア
+                
+                if (!isApiInitialized) {
+                    showError(
+                        'APIが初期化されていません',
+                        'Google APIがまだ初期化されていません。',
+                        'ページを再読み込みしてから再試行してください。',
+                        'API_NOT_INITIALIZED',
+                        () => window.location.reload()
+                    );
+                    return;
+                }
+                
+                if (gapi.client.getToken() && gapi.client.getToken().access_token) {
+                // すでにアクセストークンを持っている
+                loadGoogleDriveFiles();
+                } else {
+                // トークンを取得（ポップアップ）
+                tokenClient.requestAccessToken({ prompt: 'consent' });
+                }
+            }
+
+            // Google Driveからファイル一覧を取得
+            function loadGoogleDriveFiles() {
+                const folderId = folderIdInput.value.trim();
+                
+                if (!folderId) {
+                    showError(
+                        'フォルダIDが未入力',
+                        'Google DriveフォルダIDを入力してください。',
+                        'フォルダIDはGoogle DriveのフォルダURLから取得できます。',
+                        'EMPTY_FOLDER_ID'
+                    );
+                    return;
+                }
+                
+                // 前回と同じフォルダIDの場合はキャッシュを使用
+                if (folderId === lastFolderId && audioFiles.length > 0) {
+                    updateFileListUI(audioFiles);
+                    return;
+                }
+                
+                lastFolderId = folderId;
+                
+                // ローディング表示
+                fileListContainer.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>ファイル一覧を読み込み中...</p>
+                    </div>
+                `;
+                
+                // ボタンを無効化
+                loadFilesBtn.disabled = true;
+                loadFilesBtn.textContent = '読み込み中...';
+                
+                // ファイル一覧を格納する配列
+                audioFiles = [];
+                
+                // タイムアウト設定
+                const fetchTimeout = setTimeout(() => {
+                    loadFilesBtn.disabled = false;
+                    loadFilesBtn.textContent = 'ファイル一覧を取得';
+                    
+                    showError(
+                        'ファイル一覧の取得タイムアウト',
+                        'ファイル一覧の取得に時間がかかりすぎています。',
+                        [
+                            'インターネット接続を確認してください。',
+                            'フォルダIDが正しいか確認してください。',
+                            'フォルダ内のファイル数が多すぎないか確認してください。'
+                        ],
+                        'FETCH_TIMEOUT',
+                        loadGoogleDriveFiles
+                    );
+                }, 60000); // 60秒のタイムアウト
+                
+                // ページネーションを使用してファイルを取得する関数
+                fetchFilesWithPagination(folderId, null, fetchTimeout);
+            }
+
+            // ページネーションを使用してファイルを取得する関数を追加
+            function fetchFilesWithPagination(folderId, pageToken = null, timeoutId = null) {
+                // リクエストパラメータ
+                const params = {
+                    q: `'${folderId}' in parents and (mimeType contains 'audio/')`,
+                    fields: 'nextPageToken, files(id, name, mimeType)',
+                    pageSize: 100, // 一度に取得するファイル数を制限
+                    orderBy: 'name'
+                };
+                
+                // ページトークンがある場合は追加
+                if (pageToken) {
+                    params.pageToken = pageToken;
+                }
+                
+                // Google Drive APIを呼び出し
+                gapi.client.drive.files.list(params)
+                    .then(response => {
+                        const result = response.result;
+                        const files = result.files || [];
+                        
+                        // 取得したファイルを配列に追加
+                        audioFiles = audioFiles.concat(files);
+                        
+                        // 進捗状況を表示
+                        fileListContainer.innerHTML = `
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>ファイル一覧を読み込み中... (${audioFiles.length}件取得済み)</p>
+                            </div>
+                        `;
+                        
+                        // 次のページがある場合は再帰的に呼び出し
+                        if (result.nextPageToken) {
+                            // 少し遅延を入れてAPIの制限に引っかからないようにする
+                            setTimeout(() => {
+                                fetchFilesWithPagination(folderId, result.nextPageToken, timeoutId);
+                            }, 300);
+                        } else {
+                            // すべてのファイルを取得完了
+                            if (timeoutId) clearTimeout(timeoutId);
+                            loadFilesBtn.disabled = false;
+                            loadFilesBtn.textContent = 'ファイル一覧を取得';
+                            
+                            if (audioFiles.length > 0) {
+                                updateFileListUI(audioFiles);
+                                clearError(); // 成功したらエラーをクリア
+                            } else {
+                                fileListContainer.innerHTML = '<div class="empty-list">フォルダ内に音声ファイルが見つかりませんでした。</div>';
+                                showError(
+                                    'ファイルが見つかりません',
+                                    '指定されたフォルダ内に音声ファイルが見つかりませんでした。',
+                                    [
+                                        'フォルダIDが正しいか確認してください。',
+                                        'フォルダ内に音声ファイルが存在するか確認してください。',
+                                        'フォルダへのアクセス権があるか確認してください。'
+                                    ],
+                                    'NO_FILES_FOUND'
+                                );
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading files', error);
+                        if (timeoutId) clearTimeout(timeoutId);
+                        loadFilesBtn.disabled = false;
+                        loadFilesBtn.textContent = 'ファイル一覧を取得';
+                        
+                        let errorMessage = 'ファイル一覧の取得に失敗しました。';
+                        let errorDetails = [];
+                        let errorCode = 'FILE_LIST_ERROR';
+                        
+                        if (error.status === 404) {
+                            errorMessage = 'フォルダが見つかりません。';
+                            errorDetails = [
+                                'フォルダIDが正しいか確認してください。',
+                                'フォルダが削除されていないか確認してください。'
+                            ];
+                            errorCode = 'FOLDER_NOT_FOUND';
+                        } else if (error.status === 403) {
+                            errorMessage = 'フォルダへのアクセスが拒否されました。';
+                            errorDetails = [
+                                'フォルダへのアクセス権があるか確認してください。',
+                                '別のGoogleアカウントでログインしてみてください。'
+                            ];
+                            errorCode = 'ACCESS_DENIED';
+                        } else if (error.status === 401) {
+                            errorMessage = '認証エラーが発生しました。';
+                            errorDetails = [
+                                '再度ログインしてください。',
+                                'APIキーとクライアントIDが正しいか確認してください。'
+                            ];
+                            errorCode = 'AUTH_ERROR';
+                        } else if (error.message && error.message.includes('API key')) {
+                            errorMessage = 'APIキーが無効です。';
+                            errorDetails = [
+                                'APIキーが正しく設定されているか確認してください。',
+                                'Google Cloud ConsoleでAPIキーの制限を確認してください。'
+                            ];
+                            errorCode = 'INVALID_API_KEY';
+                        }
+                        
+                        fileListContainer.innerHTML = '<div class="empty-list">ファイル一覧の取得に失敗しました。</div>';
+                        
+                        showError(
+                            errorMessage,
+                            error.result ? error.result.error.message : (error.message || '詳細なエラー情報がありません。'),
+                            errorDetails,
+                            errorCode,
+                            loadGoogleDriveFiles
+                        );
+                    });
+            }
+
+            // ファイル一覧UIの更新
+            function updateFileListUI(files) {
+                fileListContainer.innerHTML = '';
+                
+                files.forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    
+                    fileItem.innerHTML = `
+                        <div class="file-item-title">${file.name}</div>
+                        <div class="file-item-actions">
+                            <button class="play-file-btn">▶️</button>
+                            <button class="add-to-playlist-btn">➕</button>
+                        </div>
+                    `;
+                    
+                    fileListContainer.appendChild(fileItem);
+                    
+                    // ボタンのイベントリスナー
+                    fileItem.querySelector('.play-file-btn').addEventListener('click', () => {
+                        playGoogleDriveFile(file);
+                    });
+                    
+                    fileItem.querySelector('.add-to-playlist-btn').addEventListener('click', () => {
+                        addToPlaylist(file);
+                    });
+                });
+            }
+
+            // Google Driveファイルの再生
+            function playGoogleDriveFile(file) {
+                return ensureTokenValid(() => {
+                        
+                       // Google Driveファイルの直接リンクを取得
+  // ─── fetch＋blob 版に置き換え ───
+                    fetch(
+                        `https://www.googleapis.com/drive/v3/files/${file.id}` +
+                        `?alt=media&supportsAllDrives=true`,
+                        {
+                        headers: {
+                            'Authorization': `Bearer ${gapi.client.getToken().access_token}`
+                        }
+                        }
+                    )
+                        .then(resp => {
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        return resp.blob();
+                        })
+                        .then(blob => {
+                        // Blob を URL 化して再生
+                        const objUrl = URL.createObjectURL(blob);
+                        audioPlayer.src = objUrl;
+                        audioPlayer.load();
+                        audioPlayer.onended = () => URL.revokeObjectURL(objUrl);
+                        audioPlayer.play().then(resolve).catch(error => {
+                            console.error('Play error', error);
+                            reject(error);
+                            showError(
+                            '再生エラー',
+                            `「${file.name}」の再生に失敗しました。`,
+                            [
+                                'ブラウザの自動再生ポリシーにより、ユーザーの操作が必要な場合があります。',
+                                '再生ボタンをクリックしてください。'
+                            ],
+                            'PLAY_ERROR',
+                            () => playGoogleDriveFile(file)
+                            );
+                        });
+                        })
+                        .catch(error => {
+                        // タイムアウト用タイマー解除＆UIクリア
+                        clearTimeout(playTimeout);
+                        if (statusText.parentNode) statusText.parentNode.removeChild(statusText);
+                        console.error('fetch playback error', error);
+                        reject(error);
+                        showError(
+                            'ファイル読み込みエラー',
+                            `「${file.name}」の取得に失敗しました。`,
+                            [
+                            'インターネット接続を確認してください。',
+                            'ファイルへのアクセス権を確認してください。'
+                            ],
+                            'FETCH_ERROR',
+                            () => playGoogleDriveFile(file)
+                        );
+                        });
+                    });
+            }
+
+            // Google DriveファイルのURLを取得
+            function getGoogleDriveFileUrl(fileId) {
+                return new Promise((resolve, reject) => {
+                /* ① アクセストークンがあるか確認  */
+                const tokenObj = gapi.client.getToken();
+                if (!(tokenObj && tokenObj.access_token)) {
+                    // まだトークンが無い → Silent 取得→再実行
+                    tokenClient.requestAccessToken({
+                    prompt: 'consent',                // 毎回ポップアップなら 'consent'
+                    callback: () => resolve(null)     // 1 度トークンが付くと再度呼び出し側で retry
+                    });
+                    return;
+                }
+
+                /* ② 共有ドライブ対応 & アクセストークン付き URL を生成  */
+                const directUrl =
+                    `https://www.googleapis.com/drive/v3/files/${fileId}` +
+                    `?alt=media&supportsAllDrives=true` +
+                    `&access_token=${encodeURIComponent(tokenObj.access_token)}`;
+                audioPlayer.src = directUrl;
+
+                /* ③ URL を返す  */
+                resolve(directUrl);
+                });
+
+            }
+
+            // 時間フォーマット
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                seconds = Math.floor(seconds % 60);
+                return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            }
+
+            // 時間表示の更新
+            function updateTimeDisplay() {
+                currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+            }
+
+            // 再生時間表示の更新
+            function updateDurationDisplay() {
+                if (!isNaN(audioPlayer.duration)) {
+                    durationDisplay.textContent = formatTime(audioPlayer.duration);
+                }
+            }
+
+            // 再生/一時停止の切り替え
+            function togglePlayPause() {
+                if (audioPlayer.paused) {
+                    audioPlayer.play().catch(error => {
+                        console.error('Play error', error);
+                        showError(
+                            '再生エラー',
+                            '音声の再生に失敗しました。',
+                            [
+                                'ブラウザの自動再生ポリシーにより、ユーザーの操作が必要な場合があります。',
+                                '再生ボタンをクリックしてください。'
+                            ],
+                            'PLAY_ERROR',
+                            () => audioPlayer.play()
+                        );
+                    });
+                } else {
+                    audioPlayer.pause();
+                }
+            }
+
+            // 停止
+            function stopAudio() {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+                playPauseBtn.textContent = '再生';
+            }
+
+            // ミュートの切り替え
+            function toggleMute() {
+                audioPlayer.muted = !audioPlayer.muted;
+                muteBtn.textContent = audioPlayer.muted ? '🔇' : '🔊';
+            }
+
+            // ボリューム変更
+            function changeVolume() {
+                audioPlayer.volume = volumeSlider.value;
+                if (audioPlayer.volume === 0) {
+                    muteBtn.textContent = '🔇';
+                } else {
+                    muteBtn.textContent = '🔊';
+                    audioPlayer.muted = false;
+                }
+            }
+
+            // ===== 機能1: 単一ファイルのループ再生 =====
+            // ループモードの切り替え
+            function toggleLoop() {
+                isLooping = !isLooping;
+                audioPlayer.loop = isLooping;
+                toggleLoopBtn.textContent = `ループ: ${isLooping ? 'オン' : 'オフ'}`;
+            }
+
+            // ===== 機能2: プレイリストの自動再生 =====
+            // プレイリストに追加
+            function addToPlaylist(file) {
+                playlist.push(file);
+                updatePlaylistUI();
+                
+                // 最初のアイテムの場合、再生を開始
+                if (playlist.length === 1) {
+                    playPlaylistItem(0);
+                }
+            }
+            
+            // プレイリストUIの更新
+            function updatePlaylistUI() {
+                if (playlist.length === 0) {
+                    playlistContainer.innerHTML = '<div class="empty-list">プレイリストは空です。ファイル一覧から追加してください。</div>';
+                    return;
+                }
+                
+                playlistContainer.innerHTML = '';
+                
+                playlist.forEach((item, index) => {
+                    const playlistItem = document.createElement('div');
+                    playlistItem.className = `playlist-item ${index === currentPlaylistIndex ? 'active' : ''}`;
+                    
+                    playlistItem.innerHTML = `
+                        <div class="playlist-item-title">${item.name}</div>
+                        <div class="playlist-item-actions">
+                            <button class="play-item-btn">▶️</button>
+                            <button class="remove-item-btn">🗑️</button>
+                        </div>
+                    `;
+                    
+                    playlistContainer.appendChild(playlistItem);
+                    
+                    // ボタンのイベントリスナー
+                    playlistItem.querySelector('.play-item-btn').addEventListener('click', () => {
+                        playPlaylistItem(index);
+                    });
+                    
+                    playlistItem.querySelector('.remove-item-btn').addEventListener('click', () => {
+                        removePlaylistItem(index);
+                    });
+                });
+            }
+            
+            // プレイリストアイテムの再生
+            function playPlaylistItem(index) {
+                if (index >= 0 && index < playlist.length) {
+                    currentPlaylistIndex = index;
+                    const item = playlist[index];
+                    
+                    // Google Driveファイルの再生
+                    playGoogleDriveFile(item)
+                        .then(() => {
+                            // 再生成功
+                            updatePlaylistUI();
+                        })
+                        .catch(error => {
+                            console.error('Playlist item play error', error);
+                            // エラーは既に表示されているので、ここでは何もしない
+                        });
+                }
+            }
+            
+            // プレイリストからアイテムを削除
+            function removePlaylistItem(index) {
+                // 現在再生中のアイテムを削除する場合
+                const wasPlaying = index === currentPlaylistIndex;
+                
+                // アイテムを削除
+                playlist.splice(index, 1);
+                
+                // 必要に応じてcurrentPlaylistIndexを調整
+                if (currentPlaylistIndex >= playlist.length) {
+                    currentPlaylistIndex = playlist.length - 1;
+                }
+                
+                // UIを更新
+                updatePlaylistUI();
+                
+                // 削除したアイテムが再生中だった場合、次のアイテムを再生
+                if (wasPlaying && playlist.length > 0) {
+                    playPlaylistItem(currentPlaylistIndex);
+                } else if (playlist.length === 0) {
+                    // プレイリストが空になった場合
+                    stopAudio();
+                    currentPlaylistIndex = -1;
+                }
+            }
+            
+            // プレイリストをクリア
+            function clearPlaylist() {
+                playlist = [];
+                currentPlaylistIndex = -1;
+                stopAudio();
+                updatePlaylistUI();
+            }
+            
+            // オーディオ終了時の処理
+            function handleAudioEnded() {
+                if (isLooping) {
+                    // ループが有効な場合は、audioPlayer.loopプロパティが処理
+                    return;
+                }
+                
+                // プレイリストがあり、最後のアイテムでない場合
+                if (playlist.length > 0 && currentPlaylistIndex < playlist.length - 1) {
+                    // 次のアイテムを再生
+                    playPlaylistItem(currentPlaylistIndex + 1);
+                } else {
+                    // プレイリストの最後または空の場合
+                    stopAudio();
+                }
+            }
+
+            // プレイヤーの初期化
+            initPlayer();
+        });
+    </script>
+</body>
+</html>
