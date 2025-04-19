@@ -14,7 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const volumeSlider = document.getElementById('volume-slider');
     const currentTimeDisplay = document.getElementById('current-time');
     const durationDisplay = document.getElementById('duration');
-    const FIXED_FOLDER_ID = window.appConfig.FIXED_FOLDER_ID;;
+    const FIXED_FOLDER_ID = window.appConfig.FIXED_FOLDER_ID;
+    const folderIdInput    = document.getElementById('folder-id');
     const loadFilesBtn = document.getElementById('load-files-btn');
     const toggleLoopBtn = document.getElementById('toggle-loop-btn');
     const fileListContainer = document.getElementById('file-list');
