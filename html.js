@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const volumeSlider = document.getElementById('volume-slider');
     const currentTimeDisplay = document.getElementById('current-time');
     const durationDisplay = document.getElementById('duration');
-    const folderIdInput = document.getElementById('folder-id');
+    const FIXED_FOLDER_ID = window.appConfig.FIXED_FOLDER_ID;;
     const loadFilesBtn = document.getElementById('load-files-btn');
     const toggleLoopBtn = document.getElementById('toggle-loop-btn');
     const fileListContainer = document.getElementById('file-list');
@@ -268,6 +268,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             /* 初期状態を「未サインイン」として UI 更新 */
             updateSigninStatus(false);
+            // 認証済みならすぐファイルをロード
+            tokenClient.requestAccessToken({ prompt: '' });
             clearError();
 
         }).catch(error => {
@@ -425,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Google Driveからファイル一覧を取得
     function loadGoogleDriveFiles() {
-        const folderId = folderIdInput.value.trim();
+        const folderId = FIXED_FOLDER_ID;
         
         if (!folderId) {
             showError(
