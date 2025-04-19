@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Google Driveからファイル一覧を取得
     function loadGoogleDriveFiles() {
-        const folderId = folderIdInput.value.trim() || FIXED_FOLDER_ID;
+        const folderId = folderIdInput.value.trim() != ''?folderIdInput.value.trim(): FIXED_FOLDER_ID;
         
         if (!folderId) {
             showError(
