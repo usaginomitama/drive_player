@@ -533,7 +533,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         updateFileListUI(audioFiles);
                           // フォルダ読み込み時に自動でプレイリストへ追加
                         playlist = audioFiles.slice();
-                        updatePlaylisxtUI();
+                        updatePlaylistUI();
                         clearError(); // 成功したらエラーをクリア
                     } else {
                         fileListContainer.innerHTML = '<div class="empty-list">フォルダ内に音声ファイルが見つかりませんでした。</div>';
