@@ -1,5 +1,5 @@
 // html.js の先頭あたり
-const { API_KEY, CLIENT_ID } = window.CONFIG || {};
+const { API_KEY, CLIENT_ID } = window.appConfig || {};
 if (!API_KEY || !CLIENT_ID) {
   console.error('config.js から API_KEY/CLIENT_ID が読み込めませんでした');
 }
