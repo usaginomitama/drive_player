@@ -1,0 +1,6 @@
+# gitignore
+
+.env
+.config.js
+copy2.html
+playermoto.html
