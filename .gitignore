@@ -1,6 +1,6 @@
 # gitignore
 
 .env
-.config.js
+config.js
 copy2.html
 playermoto.html
