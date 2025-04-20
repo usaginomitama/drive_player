@@ -631,6 +631,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // ボタンのイベントリスナー
             fileItem.querySelector('.play-file-btn').addEventListener('click', () => {
+                currentFileName.textContent = `再生ファイル: ${file.name}`;
                 playGoogleDriveFile(file);
             });
             
