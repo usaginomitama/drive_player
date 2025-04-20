@@ -7,6 +7,7 @@ if (!API_KEY || !CLIENT_ID) {
 
 document.addEventListener('DOMContentLoaded', function() {
     // DOM要素
+    const currentFileName = document.getElementById('current-file-name');
     const audioPlayer = document.getElementById('audio-player');
     const playPauseBtn = document.getElementById('play-pause-btn');
     const stopBtn = document.getElementById('stop-btn');
@@ -850,6 +851,8 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPlaylistIndex = index;
             const item = playlist[index];
             
+            currentFileName.textContent = `再生ファイル: ${item.name}`;
+
             // Google Driveファイルの再生
             playGoogleDriveFile(item)
                 .then(() => {
