@@ -56,6 +56,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const CLIENT_ID = window.appConfig.CLIENT_ID;
     const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
     const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+    }
 
     // エラーメッセージを表示する関数
     function showError(title, message, details = null, errorCode = null, retryFunction = null) {
@@ -532,7 +538,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (audioFiles.length > 0) {
                         updateFileListUI(audioFiles);
                           // フォルダ読み込み時に自動でプレイリストへ追加
-                        playlist = audioFiles.slice();
+                        const shuffledFiles = audioFiles.slice();
+                        shuffleArray(shuffledFiles);
+                        playlist = shuffledFiles;
                         updatePlaylistUI();
                         clearError(); // 成功したらエラーをクリア
                     } else {
