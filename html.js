@@ -11,9 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const audioPlayer = document.getElementById('audio-player');
     const playPauseBtn = document.getElementById('play-pause-btn');
     const stopBtn = document.getElementById('stop-btn');
-    const muteBtn = document.getElementById('mute-btn');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');   
+    const muteBtn = document.getElementById('mute-btn');  
     const volumeSlider = document.getElementById('volume-slider');
     const currentTimeDisplay = document.getElementById('current-time');
     const durationDisplay = document.getElementById('duration');
@@ -35,19 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let isApiInitialized = false;
     let lastFolderId = '';
 
-    if (prevBtn && nextBtn) {
-        prevBtn.addEventListener('click', function() {
-            if (playlist.length > 0 && currentPlaylistIndex > 0) {
-                playPlaylistItem(currentPlaylistIndex - 1);
-            }
-        });
-
-        nextBtn.addEventListener('click', function() {
-            if (playlist.length > 0 && currentPlaylistIndex < playlist.length - 1) {
-                playPlaylistItem(currentPlaylistIndex + 1);
-            }
-        });
-    }
     function ensureTokenValid(next) {
       const t = gapi.client.getToken();
       const willExpireSoon = t && t.expires_at && (t.expires_at - Date.now() < 60_000);
